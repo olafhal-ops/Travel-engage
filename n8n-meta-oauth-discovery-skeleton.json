@@ -1,0 +1,271 @@
+{
+  "name": "Travel Engage v3 - Meta OAuth + Discovery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "meta-oauth-callback",
+        "responseMode": "responseNode"
+      },
+      "id": "oauthcb",
+      "name": "Meta OAuth Callback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const q=$json.query||{}; if(!q.code) throw new Error('Missing OAuth code'); return [{json:{code:q.code,state:q.state||''}}];"
+      },
+      "id": "state",
+      "name": "Validate OAuth State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v23.0/oauth/access_token",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "client_id",
+              "value": "={{$env.META_APP_ID}}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{$env.META_APP_SECRET}}"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "={{$env.META_REDIRECT_URI}}"
+            },
+            {
+              "name": "code",
+              "value": "={{$json.code}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "exchange",
+      "name": "Exchange Code for Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v23.0/me/accounts",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "name,access_token,tasks,instagram_business_account"
+            },
+            {
+              "name": "access_token",
+              "value": "={{$json.access_token}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "pages",
+      "name": "Get Pages + IG Account",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -180,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=$json.data||[]; const first=rows.find(x=>x.instagram_business_account); if(!first) throw new Error('No linked Instagram Professional account found'); return [{json:{connected:true,account_name:first.name,ig_user_id:first.instagram_business_account.id,page_id:first.id}}];"
+      },
+      "id": "store",
+      "name": "Create Secure Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{'<html><body style=\"font-family:system-ui;text-align:center;padding:40px\"><h2>Instagram koblet til ✓</h2><p>Du kan lukke dette vinduet og gå tilbake til Travel Engage.</p></body></html>'}}",
+        "options": {}
+      },
+      "id": "resp",
+      "name": "OAuth Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "travel-discovery",
+        "responseMode": "responseNode"
+      },
+      "id": "disc",
+      "name": "Discovery Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const b=$json.body||$json; return [{json:{limit:b.limit||20,topics:b.topics||[],focus:b.focus||''}}];"
+      },
+      "id": "prep",
+      "name": "Prepare Discovery",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Implement official Meta hashtag discovery here using the securely stored Page/IG token. Normalize and dedupe candidates. Do not scrape Instagram HTML.\\nreturn [{json:{results:[]}}];"
+      },
+      "id": "meta",
+      "name": "Meta Discovery Adapter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify($json.results||[])}}",
+        "options": {}
+      },
+      "id": "discresp",
+      "name": "Return Candidates",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -180,
+        -180
+      ]
+    }
+  ],
+  "connections": {
+    "Meta OAuth Callback": {
+      "main": [
+        [
+          {
+            "node": "Validate OAuth State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate OAuth State": {
+      "main": [
+        [
+          {
+            "node": "Exchange Code for Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exchange Code for Token": {
+      "main": [
+        [
+          {
+            "node": "Get Pages + IG Account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pages + IG Account": {
+      "main": [
+        [
+          {
+            "node": "Create Secure Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Secure Session": {
+      "main": [
+        [
+          {
+            "node": "OAuth Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discovery Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Discovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Discovery": {
+      "main": [
+        [
+          {
+            "node": "Meta Discovery Adapter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Discovery Adapter": {
+      "main": [
+        [
+          {
+            "node": "Return Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

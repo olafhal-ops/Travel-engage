@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg"><link rel="stylesheet" href="styles.css">
+<title>Travel Engage AI</title>
+</head>
+<body>
+<div class="shell">
+<header class="top">
+  <div class="brand"><div class="logo">✦</div><div><b>Travel Engage</b><small>AI engagement agent</small></div></div>
+  <button id="settingsBtn" class="ghost">⚙</button>
+</header>
+<main>
+<section id="home" class="page active">
+  <div class="hero">
+    <span>AUTO DISCOVERY</span>
+    <h1>La AI-en finne innleggene for deg.</h1>
+    <p>Meta/Instagram → discovery → AI-vurdering → personlige kommentarer → godkjenn → Instagram.</p>
+  </div>
+
+  <div class="card connection-card">
+    <div class="row"><div><h2>Instagram-konto</h2><p id="accountText" class="muted">Ikke koblet</p></div><span id="statusPill" class="pill off">OFFLINE</span></div>
+    <button id="connectBtn" class="primary full">Koble til Instagram / Meta</button>
+    <p class="tiny">Du må bruke en Instagram Professional-konto. Innlogging skjer hos Meta – passordet ditt lagres ikke i appen.</p>
+  </div>
+
+  <div class="card">
+    <div class="row"><h2>Discovery</h2><span id="runStatus" class="muted">Klar</span></div>
+    <div class="chips" id="topics"></div>
+    <div class="controls">
+      <label>Antall poster<select id="limit"><option>10</option><option selected>20</option><option>30</option></select></label>
+      <button id="findBtn" class="primary">Finn nye poster →</button>
+    </div>
+    <div id="findStatus" class="status"></div>
+  </div>
+
+  <div id="stats" class="stats hidden"></div>
+  <div id="queue"></div>
+</section>
+
+<section id="settings" class="page">
+<div class="pagehead"><h1>Innstillinger</h1></div>
+<div class="card">
+<label>Meta App ID<input id="appId" placeholder="123456789012345"></label>
+<label>OAuth callback URL<input id="redirectUri" placeholder="https://din-n8n/webhook/meta-oauth-callback"></label>
+<label>OAuth start URL <small>(valgfritt – hvis n8n håndterer redirect)</small><input id="authStart" placeholder="https://din-n8n/webhook/meta-oauth-start"></label>
+<label>Discovery webhook<input id="discoveryWebhook" placeholder="https://din-n8n/webhook/travel-discovery"></label>
+<label>AI-analyse webhook<input id="analysisWebhook" placeholder="https://din-n8n/webhook/travel-analysis"></label>
+<label>Profilnavn<input id="profile" placeholder="Familie på reise"></label>
+<label>Fokus<input id="focus" value="family travel, travel with kids, Thailand, Bali, Lombok, Southeast Asia"></label>
+<label>Kommentarstil<select id="tone"><option value="natural">Naturlig</option><option value="warm">Varm</option><option value="short">Kort og casual</option><option value="fun">Leken</option></select></label>
+<button id="saveSettings" class="primary full">Lagre</button>
+<div id="settingsStatus" class="status"></div>
+</div>
+<div class="card"><h2>Meta-oppsett</h2><p class="muted">Appen bruker OAuth. App Secret skal aldri legges inn her. Den skal ligge på server/n8n og brukes ved code → access-token exchange.</p></div>
+</section>
+</main>
+<nav><button class="nav active" data-page="home"><b>✦</b><small>Discovery</small></button><button class="nav" data-page="settings"><b>⚙</b><small>Innstillinger</small></button></nav>
+</div>
+<div id="toast" class="toast"></div>
+<script src="app.js"></script>
+</body></html>
